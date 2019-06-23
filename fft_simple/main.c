@@ -1,11 +1,3 @@
-//
-//  main.c
-//  fft_simple
-//
-//  Created by Jakub Hladik on 6/22/19.
-//  Copyright © 2019 Jakub Hladik. All rights reserved.
-//
-
 #include <stdio.h>
 #include <math.h>
 #include <complex.h>
@@ -13,9 +5,10 @@
 
 void generate_twiddle_factor_lookup_table(int n, complex double twiddle_lut[])
 {
-    int r;
-    for (r = 0; r < n; r++) {
-        twiddle_lut[r] = cexp(((-I * 2 * M_PI) / n) * r);
+    int i;
+    for (i = 0; i < n; i++) {
+        twiddle_lut[i] = cexp(((-I * 2 * M_PI) / n) * i);
+        printf("%+f%+fi\n", crealf(twiddle_lut[i]), cimagf(twiddle_lut[i]));
     }
 }
 
@@ -32,7 +25,7 @@ void bit_reverse_block(int n, complex double x[], complex double y[]) {
         for (j = 0; j < (int)log2(n); j++) {
             reversed = reversed | (bits[(int)log2(n) - 1 - j] << j);
         }
-        printf("[%d] -> [%d]\n", i, reversed);
+        printf("[%2d] -> [%2d]\n", i, reversed);
         y[reversed] = x[i];
     }
 }
@@ -50,16 +43,16 @@ int main(int argc, const char * argv[]) {
     
     // set input
     complex double input[n];
-    input[0] = +0.0 + 0.0*I;
-    input[1] = +0.0 + 0.0*I;
-    input[2] = +1.0 + 0.0*I;
-    input[3] = +1.0 + 0.0*I;
-    input[4] = +0.0 + 0.0*I;
-    input[5] = +0.0 + 0.0*I;
-    input[6] = +1.0 + 0.0*I;
-    input[7] = +1.0 + 0.0*I;
-    input[8] = +0.0 + 0.0*I;
-    input[9] = +0.0 + 0.0*I;
+    input[ 0] = +0.0 + 0.0*I;
+    input[ 1] = +0.0 + 0.0*I;
+    input[ 2] = +1.0 + 0.0*I;
+    input[ 3] = +1.0 + 0.0*I;
+    input[ 4] = +0.0 + 0.0*I;
+    input[ 5] = +0.0 + 0.0*I;
+    input[ 6] = +1.0 + 0.0*I;
+    input[ 7] = +1.0 + 0.0*I;
+    input[ 8] = +0.0 + 0.0*I;
+    input[ 9] = +0.0 + 0.0*I;
     input[10] = +1.0 + 0.0*I;
     input[11] = +1.0 + 0.0*I;
     input[12] = +0.0 + 0.0*I;
@@ -69,12 +62,8 @@ int main(int argc, const char * argv[]) {
     
     // generate twiddle factor look up table
     complex double twiddle_lut[n];
+    printf("generating twiddle factors...\n");
     generate_twiddle_factor_lookup_table(n, twiddle_lut);
-    int i;
-    printf("twiddle factors:\n");
-    for (i = 0; i < n; i++) {
-        printf("%+f%+fi\n", crealf(twiddle_lut[i]), cimagf(twiddle_lut[i]));
-    }
     
     // generate butterfly blocks and all the interconnections
     complex double stage_wires[(int)log2(n)][n];
@@ -89,7 +78,7 @@ int main(int argc, const char * argv[]) {
                                 twiddle_lut[(int)pow(2.0, (int)log2(n)-stage)*butterfly_offset],
                                 &stage_wires[stage][group_offset+butterfly_offset],
                                 &stage_wires[stage][group_offset+butterfly_offset+(int)pow(2.0, stage)/2]);
-                printf("stage: %d, group_offset: %d, butterfly_offset: %d, twiddle_factor: %d\n", stage, group_offset, butterfly_offset, (int)pow(2.0, (int)log2(n)-stage)*butterfly_offset);
+                printf("stage: %d,\tgroup_offset: %d,\tbutterfly_offset: %d,\ttwiddle_factor: %d\n", stage, group_offset, butterfly_offset, (int)pow(2.0, (int)log2(n)-stage)*butterfly_offset);
             }
         }
     }
@@ -107,18 +96,19 @@ int main(int argc, const char * argv[]) {
     
     
     printf("input vector:\n");
+    int i;
     for (i = 0; i < n; i++) {
-        printf("[%d] %+f%+fi\n", i, crealf(input[i]), cimagf(input[i]));
+        printf("[%2d] %+f%+fi\n", i, crealf(input[i]), cimagf(input[i]));
     }
     
     printf("bit-reversed input vector:\n");
     for (i = 0; i < n; i++) {
-        printf("[%d] %+f%+fi\n", i, crealf(stage_wires[0][i]), cimagf(stage_wires[0][i]));
+        printf("[%2d] %+f%+fi\n", i, crealf(stage_wires[0][i]), cimagf(stage_wires[0][i]));
     }
     
     printf("output vector:\n");
     for (i = 0; i < n; i++) {
-        printf("[%d] %+f%+fi\n", i, crealf(output[i]), cimagf(output[i]));
+        printf("[%2d] %+f%+fi\n", i, crealf(output[i]), cimagf(output[i]));
     }
     
     return 0;
