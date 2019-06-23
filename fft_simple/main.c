@@ -3,16 +3,20 @@
 #include <complex.h>
 
 
-void generate_twiddle_factor_lookup_table(int n, complex double twiddle_lut[])
-{
+void generate_twiddle_factor_lookup_table(int n,
+                                          complex double twiddle_lut[]) {
     int i;
     for (i = 0; i < n; i++) {
         twiddle_lut[i] = cexp(((-I * 2 * M_PI) / n) * i);
-        printf("%+f%+fi\n", crealf(twiddle_lut[i]), cimagf(twiddle_lut[i]));
+        printf("%+f%+fi\n",
+               crealf(twiddle_lut[i]),
+               cimagf(twiddle_lut[i]));
     }
 }
 
-void bit_reverse_block(int n, complex double x[], complex double y[]) {
+void bit_reverse_block(int n,
+                       complex double x[],
+                       complex double y[]) {
     int i, j;
     int reversed;
     int bits[(int)log2(n)];
@@ -30,7 +34,11 @@ void bit_reverse_block(int n, complex double x[], complex double y[]) {
     }
 }
 
-void butterfly_block(complex double x0, complex double x1, complex double wk, complex double *y0, complex double *y1) {
+void butterfly_block(complex double x0,
+                     complex double x1,
+                     complex double wk,
+                     complex double *y0,
+                     complex double *y1) {
     *y0 = x0 + wk * x1;
     *y1 = x0 - wk * x1;
 }
@@ -70,45 +78,63 @@ int main(int argc, const char * argv[]) {
     bit_reverse_block(n, input, stage_wires[0]);
     int stage, group_offset, butterfly_offset;
     printf("generating buttefly structure...\n");
-    for (stage = 1; stage <= (int)log2(n); stage++) {
-        for (group_offset = 0; group_offset <= n-1; group_offset = group_offset + (int)pow(2.0, stage)) {
-            for (butterfly_offset = 0; butterfly_offset <=  (int)pow(2.0, stage)/2-1; butterfly_offset++) {
+    
+    for (stage = 1;
+         stage <= (int)log2(n);
+         stage++) {
+        
+        for (group_offset = 0;
+             group_offset <= n-1;
+             group_offset = group_offset + (int)pow(2.0, stage)) {
+            
+            for (butterfly_offset = 0;
+                 butterfly_offset <= (int)pow(2.0, stage)/2-1;
+                 butterfly_offset++) {
+                
                 butterfly_block(stage_wires[stage-1][group_offset+butterfly_offset],
                                 stage_wires[stage-1][group_offset+butterfly_offset+(int)pow(2.0, stage)/2],
                                 twiddle_lut[(int)pow(2.0, (int)log2(n)-stage)*butterfly_offset],
                                 &stage_wires[stage][group_offset+butterfly_offset],
                                 &stage_wires[stage][group_offset+butterfly_offset+(int)pow(2.0, stage)/2]);
-                printf("stage: %d,\tgroup_offset: %d,\tbutterfly_offset: %d,\ttwiddle_factor: %d\n", stage, group_offset, butterfly_offset, (int)pow(2.0, (int)log2(n)-stage)*butterfly_offset);
+                
+                printf("stage: %d,\tgroup_offset: %d,\tbutterfly_offset: %d,\ttwiddle_factor: %d\n",
+                       stage,
+                       group_offset,
+                       butterfly_offset,
+                       (int)pow(2.0, (int)log2(n)-stage)*butterfly_offset);
             }
         }
     }
     
     // connect output to the last stage
     complex double output[n];
-    output[0] = stage_wires[(int)log2(n)][0];
-    output[1] = stage_wires[(int)log2(n)][1];
-    output[2] = stage_wires[(int)log2(n)][2];
-    output[3] = stage_wires[(int)log2(n)][3];
-    output[4] = stage_wires[(int)log2(n)][4];
-    output[5] = stage_wires[(int)log2(n)][5];
-    output[6] = stage_wires[(int)log2(n)][6];
-    output[7] = stage_wires[(int)log2(n)][7];
+    int i;
+    for (i = 0; i < n; i++) {
+        output[i] = stage_wires[(int)log2(n)][i];
+    }
     
     
     printf("input vector:\n");
-    int i;
     for (i = 0; i < n; i++) {
-        printf("[%2d] %+f%+fi\n", i, crealf(input[i]), cimagf(input[i]));
+        printf("[%2d] %+f%+fi\n",
+               i,
+               crealf(input[i]),
+               cimagf(input[i]));
     }
     
     printf("bit-reversed input vector:\n");
     for (i = 0; i < n; i++) {
-        printf("[%2d] %+f%+fi\n", i, crealf(stage_wires[0][i]), cimagf(stage_wires[0][i]));
+        printf("[%2d] %+f%+fi\n",
+               i,
+               crealf(stage_wires[0][i]),
+               cimagf(stage_wires[0][i]));
     }
     
     printf("output vector:\n");
     for (i = 0; i < n; i++) {
-        printf("[%2d] %+f%+fi\n", i, crealf(output[i]), cimagf(output[i]));
+        printf("[%2d] %+f%+fi\n",
+               i, crealf(output[i]),
+               cimagf(output[i]));
     }
     
     return 0;
