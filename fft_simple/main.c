@@ -1,3 +1,12 @@
+//
+//  main.c
+//  fft_simple
+//
+//  Created by Jakub Hladik on 6/22/19.
+//  Copyright © 2019 Jakub Hladik. All rights reserved.
+//
+
+
 #include <stdio.h>
 #include <math.h>
 #include <complex.h>
