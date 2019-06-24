@@ -18,9 +18,13 @@ void generate_twiddle_factor_lookup_table(int n,
     int i;
     for (i = 0; i < n; i++) {
         twiddle_lut[i] = cexp(((-I * 2 * M_PI) / n) * i);
-        //printf("%+f%+fi\n",
-               //crealf(twiddle_lut[i]),
-               //cimagf(twiddle_lut[i]));
+        // TODO: only using first half of the table but when shortened, we get SEGFAULTS...
+        if (i > n/2-1) {
+            twiddle_lut[i] = 0.0+0.0*I;
+        }
+        printf("%+f%+fi\n",
+               crealf(twiddle_lut[i]),
+               cimagf(twiddle_lut[i]));
     }
 }
 
@@ -81,17 +85,27 @@ void dit_radix_2_fft(int n, complex double input[], complex double output[]) {
                  butterfly_offset <= (int)pow(2.0, stage)/2-1;
                  butterfly_offset++) {
                 
-                butterfly_block(stage_wires[stage-1][group_offset+butterfly_offset],
-                                stage_wires[stage-1][group_offset+butterfly_offset+(int)pow(2.0, stage)/2],
-                                twiddle_lut[(int)pow(2.0, (int)log2(n)-stage)*butterfly_offset],
-                                &stage_wires[stage][group_offset+butterfly_offset],
-                                &stage_wires[stage][group_offset+butterfly_offset+(int)pow(2.0, stage)/2]);
+                int x0_i, x1_i, wk_i, y0_i, y1_i;
                 
-                //printf("stage: %d,\tgroup_offset: %d,\tbutterfly_offset: %d,\ttwiddle_factor: %d\n",
-                       //stage,
-                       //group_offset,
-                       //butterfly_offset,
-                       //(int)pow(2.0, (int)log2(n)-stage)*butterfly_offset);
+                x0_i = group_offset+butterfly_offset;
+                x1_i = group_offset+butterfly_offset+(int)pow(2.0, stage)/2;
+                wk_i = (int)pow(2.0, (int)log2(n)-stage)*butterfly_offset;
+                y0_i = group_offset+butterfly_offset;
+                y1_i = group_offset+butterfly_offset+(int)pow(2.0, stage)/2;
+                
+                printf("stage: %d,\tgroup_offset: %d,\tbutterfly_offset: %d,\ttwiddle_factor: %d\n",
+                       stage,
+                       group_offset,
+                       butterfly_offset,
+                       wk_i);
+                
+                butterfly_block(stage_wires[stage-1][x0_i],
+                                stage_wires[stage-1][x1_i],
+                                twiddle_lut[wk_i],
+                                &stage_wires[stage][y0_i],
+                                &stage_wires[stage][y1_i]);
+                
+
             }
         }
     }
